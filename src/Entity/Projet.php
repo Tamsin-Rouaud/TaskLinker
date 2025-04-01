@@ -6,6 +6,8 @@ use App\Repository\ProjetRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
+
 
 #[ORM\Entity(repositoryClass: ProjetRepository::class)]
 class Projet
@@ -15,6 +17,8 @@ class Projet
     #[ORM\Column]
     private ?int $id = null;
 
+    #[Assert\Length(min: 10)]
+    #[Assert\NotBlank()]
     #[ORM\Column(length: 255)]
     private ?string $titre = null;
 
@@ -22,7 +26,7 @@ class Projet
      * @var Collection<int, Tache>
      */
     #[ORM\OneToMany(targetEntity: Tache::class, mappedBy: 'projet')]
-    private Collection $tache;
+    private Collection $taches;
 
     /**
      * @var Collection<int, Employe>
@@ -56,15 +60,15 @@ class Projet
     /**
      * @return Collection<int, Tache>
      */
-    public function getTache(): Collection
+    public function getTaches(): Collection
     {
-        return $this->tache;
+        return $this->taches;
     }
 
     public function addTache(Tache $tache): static
     {
-        if (!$this->tache->contains($tache)) {
-            $this->tache->add($tache);
+        if (!$this->taches->contains($tache)) {
+            $this->taches->add($tache);
             $tache->setProjet($this);
         }
 
@@ -73,7 +77,7 @@ class Projet
 
     public function removeTache(Tache $tache): static
     {
-        if ($this->tache->removeElement($tache)) {
+        if ($this->taches->removeElement($tache)) {
             // set the owning side to null (unless already changed)
             if ($tache->getProjet() === $this) {
                 $tache->setProjet(null);

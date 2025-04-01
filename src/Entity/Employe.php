@@ -6,6 +6,7 @@ use App\Enum\EmployeStatus;
 use App\Repository\EmployeRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: EmployeRepository::class)]
 class Employe
@@ -15,20 +16,32 @@ class Employe
     #[ORM\Column]
     private ?int $id = null;
 
+    #[Assert\Length(min: 3)]
+    #[Assert\NotBlank()]
     #[ORM\Column(length: 255)]
     private ?string $nom = null;
 
+    #[Assert\Length(min: 3)]
+    #[Assert\NotBlank()]
     #[ORM\Column(length: 255)]
     private ?string $prenom = null;
 
+    #[Assert\Choice(callback: [EmployeStatus::class, 'cases'], message: 'Veuillez choisir un statut valide.')]
+    #[Assert\NotBlank()]
     #[ORM\Column(length: 255)]
     private ?EmployeStatus $status = null;
 
+    #[Assert\Email(
+        message: 'Le mail saisi : {{ value }} n\'est pas valide.',
+    )]
+    #[Assert\NotBlank()]
     #[ORM\Column(length: 255)]
     private ?string $email = null;
-
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
-    private ?\DateTimeInterface $date_entree = null;
+    
+    
+    #[Assert\NotBlank()]
+    #[ORM\Column(type: Types::DATE_IMMUTABLE)]
+    private ?\DateTimeImmutable $date_entree = null;
 
      public function getId(): ?int
     {
@@ -71,12 +84,12 @@ class Employe
         return $this;
     }
 
-    public function getDateEntree(): ?\DateTimeInterface
+    public function getDateEntree(): ?\DateTimeImmutable
     {
         return $this->date_entree;
     }
 
-    public function setDateEntree(\DateTimeInterface $date_entree): static
+    public function setDateEntree(\DateTimeImmutable $date_entree): static
     {
         $this->date_entree = $date_entree;
 

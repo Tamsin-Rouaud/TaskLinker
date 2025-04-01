@@ -2,9 +2,11 @@
 
 namespace App\Entity;
 
+use App\Enum\TacheStatus;
 use App\Repository\TacheRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: TacheRepository::class)]
 class Tache
@@ -14,22 +16,29 @@ class Tache
     #[ORM\Column]
     private ?int $id = null;
 
+    #[Assert\NotBlank()]
     #[ORM\Column(length: 255)]
     private ?string $titre = null;
 
-
+    #[Assert\NotBlank()]
     #[ORM\Column(length: 255)]
-    private ?string $status = null;
+    private ?TacheStatus $status = null;
 
-    #[ORM\Column(length: 1000, nullable: true)]
+
+    #[Assert\Length(max:350)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
-    #[ORM\Column(nullable: true)]
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $deadline = null;
 
     #[ORM\ManyToOne(inversedBy: 'tache')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Projet $projet = null;
+
+    #[ORM\ManyToOne]
+    #[ORM\Column(nullable: true)]
+    private ?Employe $employe = null;
 
     
 
@@ -51,12 +60,12 @@ class Tache
     }
 
 
-    public function getStatus(): ?string
+    public function getStatus(): ?TacheStatus
     {
         return $this->status;
     }
 
-    public function setStatus(string $status): static
+    public function setStatus(TacheStatus $status): static
     {
         $this->status = $status;
 
@@ -95,6 +104,18 @@ class Tache
     public function setProjet(?Projet $projet): static
     {
         $this->projet = $projet;
+
+        return $this;
+    }
+
+    public function getEmploye(): ?Employe
+    {
+        return $this->employe;
+    }
+
+    public function setEmploye(?Employe $employe): static
+    {
+        $this->employe = $employe;
 
         return $this;
     }
