@@ -110,9 +110,12 @@ class Employe
 
     public function getInitiales(): string
     {
+
         $initialePrenom = $this->prenom ? strtoupper($this->prenom[0]) : '';
         $initialeNom = $this->nom ? strtoupper($this->nom[0]) : '';
 
         return $initialePrenom . $initialeNom;
     }
+
+    
 }

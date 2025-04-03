@@ -6,6 +6,7 @@ namespace App\Controller;
 use App\Entity\Projet;
 use App\Entity\Tache;
 use App\Form\TacheType;
+use App\Repository\TacheRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -15,20 +16,37 @@ use Symfony\Component\Routing\Attribute\Route;
 final class TacheController extends AbstractController
 {
 
-    /** Affiche les tâches d’un projet */
-    #[Route('/projet/{id}/taches', name: 'app_taches_projet', methods:['GET'])]
-    public function index(Projet $projet): Response
+/** Affiche les tâches d’un projet */
+#[Route('/projet/{id}/taches', name: 'app_taches_projet', methods:['GET'])]
+public function index(Projet $projet): Response
+{
+   
+    return $this->render('projet/index.html.twig', [
+        'projet' => '$projet',
+        'taches' => $projet->getTaches(),
+    ]);
+}
+
+
+    /** Affiche une tâche en détail */
+    #[Route('/tache/detail/{id}', name: 'app_projet_tache_detail', requirements: ['id'=> '\d+'], methods: ['GET'])]
+    public function show(int $id, TacheRepository $repository): Response
     {
-       
-        return $this->render('tache/index.html.twig', [
-            'projet' => '$projet',
-            'taches' => $projet->getTaches(),
-        ]);
+        $tache = $repository->find($id);
+        if($tache) {
+            return $this->render('projet/tache/detail.html.twig', [
+                'tache' => $tache,
+            ]);
+        } else {
+            return $this->redirectToRoute('app_projet_detail', ['id' => $tache->getId()]);
+        }
+               
     }
 
-    /** Ajoute une nouvelle tâche à un projet */
-    #[Route('/projet/{id}/tache/ajouter', name: 'app_tache_ajouter')]
-    public function ajouter(Request $request, Projet $projet, EntityManagerInterface $manager): Response
+
+    /** Créer une nouvelle tâche à un projet */
+    #[Route('/projet/{id}/tache/ajouter', name: 'app_tache_ajouter', methods: ['GET', 'POST'])]
+    public function new(Request $request, Projet $projet, EntityManagerInterface $manager): Response
     {
         $tache = new Tache();
         // lie la tâche au projet
@@ -44,25 +62,26 @@ final class TacheController extends AbstractController
             return $this->redirectToRoute('app_taches_projet', ['id' => $projet->getId()]);
         }
 
-        return $this->render('tache/form.html.twig', [
+        return $this->render('/tache/new.html.twig', [
             'form' => $form,
-            'projet' => $projet
+            'projet' => $projet,
         ]);
     }
 
     /** Modifie une tâche existante */
     #[Route('/tache/{id}/modifier', name: 'app_tache_modifier')]
-    public function modifier(Request $request, Tache $tache, EntityManagerInterface $manager): Response
+    public function edit(Request $request, Tache $tache, EntityManagerInterface $manager): Response
     {
         $form = $this->createForm(TacheType::class, $tache);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $manager->persist($tache);
             $manager->flush();
             return $this->redirectToRoute('app_taches_projet', ['id' => $tache->getProjet()->getId()]);
         }
 
-        return $this->render('tache/form.html.twig', [
+        return $this->render('tache/new.html.twig', [
             'form' => $form,
             'projet' => $tache->getProjet()
         ]);
@@ -70,7 +89,7 @@ final class TacheController extends AbstractController
 
     /** Supprime une tâche */
     #[Route('/tache/{id}/supprimer', name: 'app_tache_supprimer')]
-    public function supprimer(Tache $tache, EntityManagerInterface $manager): Response
+    public function delete(Tache $tache, EntityManagerInterface $manager): Response
     {
         $projetId = $tache->getProjet()->getId();
 

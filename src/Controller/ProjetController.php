@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Projet;
+use App\Enum\TacheStatus;
 use App\Form\ProjetType;
 use App\Repository\ProjetRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -13,10 +14,12 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class ProjetController extends AbstractController
 {
-    #[Route('/projets', name: 'app_projets', methods:['GET'])]
+    /** Affiche tous les projets non archivés */
+    #[Route('/', name: 'app_projets', methods:['GET'])]
     public function index(ProjetRepository $repository): Response
     {
-        $projets = $repository->findAll();
+        $projets = $repository->findNonArchives();
+
 
         return $this->render('projet/index.html.twig', [
             
@@ -24,22 +27,29 @@ final class ProjetController extends AbstractController
         ]);
     }
 
-    /** Affiche un projet en détail */
-    #[Route('/projet/{id}', name: 'app_projet_detail')]
-    public function detail(Projet $projet): Response
-    {
-        return $this->render('projet/detail.html.twig', [
-            'projet' => $projet,
-        ]);
+    /** Affiche un projet en détail non archivé*/
+    #[Route('/detail/{id}', name: 'app_projet_detail', requirements: ['id'=> '\d+'], methods: ['GET'])]
+public function show(int $id, ProjetRepository $repository): Response
+{
+    $projet = $repository->find($id);
+
+    if (!$projet || $projet->isArchived()) {
+        $this->addFlash('warning', 'Ce projet est introuvable ou archivé.');
+        return $this->redirectToRoute('app_projets');
     }
 
-    /**
-     * Crée un nouveau projet
-     */
-    #[Route('/projet/ajouter', name: 'app_projet_ajouter')]
-    public function ajouter(Request $request, EntityManagerInterface $manager): Response
+    return $this->render('projet/detail.html.twig', [
+        'projet' => $projet,
+        'statuses' => TacheStatus::cases()
+    ]);
+}
+
+
+    /** Crée un nouveau projet */
+    #[Route('/ajouter_projet', name: 'app_projet_ajouter', methods:['GET', 'POST'])]
+        public function new(?Projet $projet,Request $request, EntityManagerInterface $manager): Response
     {
-        $projet = new Projet();
+        $projet ??= new Projet();
         $form = $this->createForm(ProjetType::class, $projet);
         $form->handleRequest($request);
 
@@ -47,46 +57,47 @@ final class ProjetController extends AbstractController
             $manager->persist($projet);
             $manager->flush();
 
-            return $this->redirectToRoute('app_projets');
+            return $this->redirectToRoute('app_projet_detail', ['id' => $projet->getId()]);
         }
 
-        return $this->render('projet/form.html.twig', [
+        return $this->render('projet/new.html.twig', [
             'form' => $form,
         ]);
     }
 
-    /**
-     * Modifie un projet
-     */
+    /** Modifie un projet */
     #[Route('/projet/{id}/modifier', name: 'app_projet_modifier')]
-    public function modifier(Request $request, Projet $projet, EntityManagerInterface $manager): Response
+    public function edit(Request $request, Projet $projet, EntityManagerInterface $manager): Response
     {
         $form = $this->createForm(ProjetType::class, $projet);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $manager->persist($projet);
             $manager->flush();
+
             return $this->redirectToRoute('app_projet_detail', ['id' => $projet->getId()]);
         }
 
-        return $this->render('projet/form.html.twig', [
+        return $this->render('projet/new.html.twig', [
             'form' => $form,
             'projet' => $projet
         ]);
     }
 
     /**
-     * Supprime un projet
+     * Archiver un projet
      */
-    #[Route('/projet/{id}/supprimer', name: 'app_projet_supprimer')]
-    public function supprimer(Projet $projet, EntityManagerInterface $manager): Response
+    #[Route('/projet/{id}/archiver', name: 'app_projet_archiver')]
+    public function archived(Projet $projet, EntityManagerInterface $manager): Response
     {
-        $manager->remove($projet);
+        $projet->setIsArchived(true);
         $manager->flush();
-
-        return $this->redirectToRoute('app_projets');
+    
+        $this->addFlash('success', 'Projet archivé avec succès.');
+        return $this->redirectToRoute('app_projets'); // ou ta page d'accueil
     }
-
+    
 
 
 }

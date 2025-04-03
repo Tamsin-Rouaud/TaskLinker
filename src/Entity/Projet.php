@@ -22,6 +22,9 @@ class Projet
     #[ORM\Column(length: 255)]
     private ?string $titre = null;
 
+    #[ORM\Column(type: 'boolean')]
+    private bool $isArchived = false;
+
     /**
      * @var Collection<int, Tache>
      */
@@ -57,6 +60,17 @@ class Projet
         return $this;
     }
 
+        public function isArchived(): bool
+    {
+        return $this->isArchived;
+    }
+
+    public function setIsArchived(bool $isArchived): static
+    {
+        $this->isArchived = $isArchived;
+        return $this;
+    }
+    
     /**
      * @return Collection<int, Tache>
      */
