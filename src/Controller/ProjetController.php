@@ -27,8 +27,8 @@ final class ProjetController extends AbstractController
         ]);
     }
 
-    /** Affiche un projet en détail non archivé*/
-    #[Route('/detail/{id}', name: 'app_projet_detail', requirements: ['id'=> '\d+'], methods: ['GET'])]
+    /** Affiche un projet en détail avec tableau des statuts */
+#[Route('/projet/{id}', name: 'app_projet_detail', requirements: ['id'=> '\d+'], methods: ['GET'])]
 public function show(int $id, ProjetRepository $repository): Response
 {
     $projet = $repository->find($id);
@@ -38,11 +38,23 @@ public function show(int $id, ProjetRepository $repository): Response
         return $this->redirectToRoute('app_projets');
     }
 
+    // Crée une structure pour organiser les tâches par statut
+    $statusList = [];
+    foreach (TacheStatus::cases() as $status) {
+        $statusList[$status->value] = [];
+    }
+
+    foreach ($projet->getTaches() as $tache) {
+        $key = $tache->getStatus()->value;
+        $statusList[$key][] = $tache;
+    }
+
     return $this->render('projet/detail.html.twig', [
         'projet' => $projet,
-        'statuses' => TacheStatus::cases()
+        'statusList' => $statusList,
     ]);
 }
+
 
 
     /** Crée un nouveau projet */
@@ -99,31 +111,31 @@ public function show(int $id, ProjetRepository $repository): Response
     }
     
 
-    #[Route('/projet/{id}', name: 'app_projet_detail')]
-public function createStatusBoard(int $id, ProjetRepository $repository): Response
-{
-    $projet = $repository->find($id);
+//     #[Route('/projet/{id}', name: 'app_projet_detail')]
+// public function createStatusBoard(int $id, ProjetRepository $repository): Response
+// {
+//     $projet = $repository->find($id);
 
-    if (!$projet) {
-        throw $this->createNotFoundException('Projet non trouvé');
-    }
+//     if (!$projet) {
+//         throw $this->createNotFoundException('Projet non trouvé');
+//     }
 
-    // Crée une structure pour organiser les tâches par statut
-    $statusList = [];
-    foreach (TacheStatus::cases() as $status) {
-        $statusList[$status->value] = [];
-    }
+//     // Crée une structure pour organiser les tâches par statut
+//     $statusList = [];
+//     foreach (TacheStatus::cases() as $status) {
+//         $statusList[$status->value] = [];
+//     }
 
-    // Classe les tâches selon leur statut
-    foreach ($projet->getTaches() as $tache) {
-        $key = $tache->getStatus()->value;
-        $statusList[$key][] = $tache;
-    }
+//     // Classe les tâches selon leur statut
+//     foreach ($projet->getTaches() as $tache) {
+//         $key = $tache->getStatus()->value;
+//         $statusList[$key][] = $tache;
+//     }
 
-    return $this->render('projet/detail.html.twig', [
-        'projet' => $projet,
-        'statusList' => $statusList,
-    ]);
-}
+//     return $this->render('projet/detail.html.twig', [
+//         'projet' => $projet,
+//         'statusList' => $statusList,
+//     ]);
+// }
 
 }

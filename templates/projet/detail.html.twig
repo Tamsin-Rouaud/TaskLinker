@@ -20,9 +20,6 @@
 {% block body %}
 
 
-    
-
-
 <div id="content">
     <div id="tasks-container">
     {% for statut, taches in statusList %}
@@ -30,7 +27,7 @@
             <h2>{{ statut|capitalize }}</h2>
             <div class="tasks-list">
                 {% for tache in taches %}
-                    <a class="task" href="{{ path('app_projet_tache_detail', { id: tache.id }) }}">
+                    <a class="task" href="{{ path('app_tache_modifier', { id: tache.id }) }}">
                         <h3>{{ tache.titre }}</h3>
                         <p>{{ tache.description }}</p>
                         <div class="task-infos">
