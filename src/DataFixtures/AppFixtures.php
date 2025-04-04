@@ -24,7 +24,6 @@ class AppFixtures extends Fixture
             'description' => 'Créer la vue et le contrôleur',
             'deadline' => new \DateTimeImmutable('+5 days'),
             'employe' => EmployeFactory::random(),
-            'projet' => ProjetFactory::random(),
         ]);
 
         // Crée plusieurs tâches aléatoires

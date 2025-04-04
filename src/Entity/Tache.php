@@ -36,8 +36,8 @@ class Tache
     #[ORM\JoinColumn(nullable: false)]
     private ?Projet $projet = null;
 
-    #[ORM\ManyToOne]
-    #[ORM\Column(nullable: true)]
+    #[ORM\ManyToOne(targetEntity: Employe::class)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Employe $employe = null;
 
     

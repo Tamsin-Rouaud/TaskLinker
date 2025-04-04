@@ -35,12 +35,13 @@ final class TacheFactory extends PersistentProxyObjectFactory
         return [
             'projet' => ProjetFactory::new(),
             'status' => self::faker()->randomElement(TacheStatus::cases()),
-            'titre' => self::faker()->text(10),
+            'titre' => self::faker()->words(2, true),
             'employe' => EmployeFactory::randomOrCreate(),
+            'deadline' => \DateTimeImmutable::createFromMutable(self::faker()->dateTimeBetween('now', '+1 month')),
+            'description' =>self::faker()->paragraph(1)
 
         ];
     }
-
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#initialization
      */

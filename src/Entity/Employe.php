@@ -117,5 +117,8 @@ class Employe
         return $initialePrenom . $initialeNom;
     }
 
-    
+    public function __toString(): string
+{
+    return $this->prenom . ' ' . $this->nom;
+}
 }

@@ -59,12 +59,14 @@ public function index(Projet $projet): Response
             $manager->persist($tache);
             $manager->flush();
 
-            return $this->redirectToRoute('app_taches_projet', ['id' => $projet->getId()]);
+            return $this->redirectToRoute('app_projet_detail', [
+                'id' => $projet->getId()
+            ]);
         }
 
         return $this->render('/tache/new.html.twig', [
             'form' => $form,
-            'projet' => $projet,
+            'projets' => $projet,
         ]);
     }
 

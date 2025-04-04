@@ -99,5 +99,31 @@ public function show(int $id, ProjetRepository $repository): Response
     }
     
 
+    #[Route('/projet/{id}', name: 'app_projet_detail')]
+public function createStatusBoard(int $id, ProjetRepository $repository): Response
+{
+    $projet = $repository->find($id);
+
+    if (!$projet) {
+        throw $this->createNotFoundException('Projet non trouvé');
+    }
+
+    // Crée une structure pour organiser les tâches par statut
+    $statusList = [];
+    foreach (TacheStatus::cases() as $status) {
+        $statusList[$status->value] = [];
+    }
+
+    // Classe les tâches selon leur statut
+    foreach ($projet->getTaches() as $tache) {
+        $key = $tache->getStatus()->value;
+        $statusList[$key][] = $tache;
+    }
+
+    return $this->render('projet/detail.html.twig', [
+        'projet' => $projet,
+        'statusList' => $statusList,
+    ]);
+}
 
 }
